@@ -152,7 +152,7 @@ public class Main extends Application {
         launch();
     }
 
-    
+
     public static List<Process> XMLInlezen(int listNumber){
 
         List<Process> processList = new ArrayList<>();
