@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -9,6 +11,9 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
@@ -18,34 +23,36 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
-import java.io.*;
-import java.util.Scanner;
 
 public class Main extends Application {
 
-    static int processenAantal = 1;
-    static int schedulingManier = 4;
+    public static void main(String[] args) {
+        launch();
+    }
 
     @Override
     public void start(Stage stage) {
+
+        final Scheduling scheduling = new Scheduling();
+
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setPadding(new Insets(25,25,25,25));
+        grid.setPadding(new Insets(25, 25, 25, 25));
 
         Scene scene = new Scene(grid, 700, 300);
 
-        //Bovenkant
+        //Titel van venster
         Text titel = new Text("Maak uw keuze: ");
         titel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(titel,0,0,2,1);
+        grid.add(titel, 0, 0, 2, 1);
 
+        //Aantal processen text
         Text aantalProcessen = new Text("Kies het aantal processen");
-        grid.add(aantalProcessen,1,1,1,1);
+        grid.add(aantalProcessen, 1, 1, 1, 1);
 
+        //Radio buttons voor aantal processen
         final ToggleGroup groep1 = new ToggleGroup();
         RadioButton rb1 = new RadioButton("10000");
         rb1.setToggleGroup(groep1);
@@ -63,28 +70,25 @@ public class Main extends Application {
             public void changed(ObservableValue<? extends Toggle> ov,
                                 Toggle old_toggle, Toggle new_toggle) {
                 if (groep1.getSelectedToggle() != null) {
-                    processenAantal = (Integer.parseInt(groep1.getSelectedToggle().getUserData().toString()));
-                    System.out.println(processenAantal);
-                    System.out.println(schedulingManier);
+                    scheduling.setAmountOfProcesses(Integer.parseInt(groep1.getSelectedToggle().getUserData().toString()));
                 }
             }
         });
 
-        grid.add(rb1,1,2,1,1);
-        grid.add(rb2,2,2,1,1);
-        grid.add(rb3,3,2,1,1);
+        grid.add(rb1, 1, 2, 1, 1);
+        grid.add(rb2, 2, 2, 1, 1);
+        grid.add(rb3, 3, 2, 1, 1);
 
-
-        //Onderkant
+        //Radio buttons voor de keuze van de scheduling manier
         Text soortAlgoritme = new Text("Kies de gewenste manier:");
-        grid.add(soortAlgoritme,1,3,1,1);
+        grid.add(soortAlgoritme, 1, 3, 1, 1);
 
         final ToggleGroup groep2 = new ToggleGroup();
         RadioButton rb4 = new RadioButton("FCFS");
         rb4.setToggleGroup(groep2);
         rb4.setUserData("1");
 
-        RadioButton rb5 = new RadioButton("SJF");
+        RadioButton rb5 = new RadioButton("SPN");
         rb5.setToggleGroup(groep2);
         rb5.setUserData("2");
 
@@ -108,100 +112,68 @@ public class Main extends Application {
         rb10.setToggleGroup(groep2);
         rb10.setUserData("7");
 
+        RadioButton rb11 = new RadioButton("Alles");
+        rb10.setToggleGroup(groep2);
+        rb10.setUserData("8");
+
         groep2.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
             public void changed(ObservableValue<? extends Toggle> ov,
                                 Toggle old_toggle, Toggle new_toggle) {
                 if (groep2.getSelectedToggle() != null) {
-                    schedulingManier = Integer.parseInt(groep2.getSelectedToggle().getUserData().toString());
-                    System.out.println(processenAantal);
-                    System.out.println(schedulingManier);
+                    scheduling.setSchedulingOption(Integer.parseInt(groep2.getSelectedToggle().getUserData().toString()));
+                    //System.out.println(processenAantal);
+                    //System.out.println(schedulingManier);
                 }
             }
         });
 
-        grid.add(rb4,1,4,1,1);
-        grid.add(rb5,2,4,1,1);
-        grid.add(rb6,3,4,1,1);
-        grid.add(rb7,4,4,1,1);
-        grid.add(rb8,5,4,1,1);
-        grid.add(rb9,6,4,1,1);
-        grid.add(rb10,7,4,1,1);
-
+        grid.add(rb4, 1, 4, 1, 1);
+        grid.add(rb5, 2, 4, 1, 1);
+        grid.add(rb6, 3, 4, 1, 1);
+        grid.add(rb7, 4, 4, 1, 1);
+        grid.add(rb8, 5, 4, 1, 1);
+        grid.add(rb9, 6, 4, 1, 1);
+        grid.add(rb10, 7, 4, 1, 1);
+        grid.add(rb11, 8, 4, 1, 1);
 
         //BevestigenKnop
         Button button = new Button("Bevestig");
-
         button.setOnAction(new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                uitvoeren();
+            @Override
+            public void handle(ActionEvent e) {
+                List<Percentile> graphValues = scheduling.execute();
+                System.out.println("grootte na fcfs" + graphValues.size());
+
+                toonGrafiek(graphValues);
             }
         });
 
-        grid.add(button,1,5,1,1);
+        grid.add(button, 1, 5, 1, 1);
         stage.setScene(scene);
         stage.show();
     }
 
+    //Functie voor het tonen van grafieken
+    public static void toonGrafiek(List<Percentile> values) {
+        //defining the axes
+        final NumberAxis xAs = new NumberAxis();
+        int waarde = 10;
+        final NumberAxis yAs = new NumberAxis();
 
-    public static void uitvoeren(){
-        XMLInlezen(processenAantal);
-    }
+        XYChart.Series series = new XYChart.Series();
 
-
-    public static void main(String[] args){
-        launch();
-    }
-
-
-    public static List<Process> XMLInlezen(int listNumber){
-
-        List<Process> processList = new ArrayList<>();
-
-        try {
-            File inputFile;
-            switch (listNumber){
-                case 1: inputFile = new File("resources/processen10000.xml");
-                        break;
-                case 2: inputFile = new File("resources/processen20000.xml");
-                        break;
-                case 3: inputFile = new File("resources/processen50000.xml");
-                        break;
-                default: inputFile = new File("resources/processen10000.xml");
-                        break;
-
-            }
-
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-
-            Document doc = builder.parse(inputFile);
-            doc.getDocumentElement().normalize();
-            NodeList nodeList = doc.getElementsByTagName("process");
-
-            for(int i = 0; i < nodeList.getLength(); i++){
-                Node node = nodeList.item(i);
-
-                Element element = (Element) node;
-
-                Process p = new Process();
-
-                int pid = Integer.parseInt(element.getElementsByTagName("pid").item(0).getTextContent());
-                int arrivalTime = Integer.parseInt(element.getElementsByTagName("arrivaltime").item(0).getTextContent());
-                int serviceTime = Integer.parseInt(element.getElementsByTagName("servicetime").item(0).getTextContent());
-
-
-                p.setPID(pid);
-                p.setArrivalTime(arrivalTime);
-                p.setServiceTime(serviceTime);
-
-                processList.add(p);
-                System.out.println("process: " +  i);
-            }
-
-        }catch (Exception e){
-            e.printStackTrace();
+        //creating the chart
+        final LineChart<Number, Number> lineChart = new LineChart<>(xAs, yAs);
+        for(int i = 0; i < 100; i++) {
+            series.getData().add(new XYChart.Data(i,values.get(i).getAverageNormilizedTAT() ));
         }
 
-        return processList;
+        lineChart.getData().add(series);
+
+        //creating the new stage
+        Stage grafiekVenster = new Stage();
+        grafiekVenster.setTitle("grafiek");
+        grafiekVenster.setScene(new Scene(lineChart, 1000, 800));
+        grafiekVenster.show();
     }
 }
