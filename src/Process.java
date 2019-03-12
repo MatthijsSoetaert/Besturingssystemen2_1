@@ -1,16 +1,21 @@
 public class Process implements Comparable<Process> {
 
     private int PID;
-    private int arrivalTime;
-    private int serviceTime;
-    private int startTime;
-    private int endTime;
-    private int turnAroundTime;
-    private long normalizedTurnAroundTime;
-    private int waitTime;
+    private double arrivalTime;
+    private double serviceTime;
+    private double startTime;
+    private double endTime;
+    private double turnAroundTime;
+    private double normalizedTurnAroundTime;
+    private double waitTime;
+
+
+
+    private double remainingTime;
 
     //Constructors
     public Process() {
+        remainingTime = serviceTime;
     }
 
     //Functions
@@ -26,6 +31,12 @@ public class Process implements Comparable<Process> {
         System.out.println("");
     }
 
+    public double executeProcess(){
+        endTime = startTime + serviceTime;
+        waitTime = startTime - arrivalTime;
+        return endTime;
+    }
+
     //Getters en setters
     public int getPID() {
         return PID;
@@ -35,39 +46,39 @@ public class Process implements Comparable<Process> {
         this.PID = PID;
     }
 
-    public int getArrivalTime() {
+    public double getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(int arrivalTime) {
+    public void setArrivalTime(double arrivalTime) {
         this.arrivalTime = arrivalTime;
     }
 
-    public int getServiceTime() {
+    public double getServiceTime() {
         return serviceTime;
     }
 
-    public void setServiceTime(int serviceTime) {
+    public void setServiceTime(double serviceTime) {
         this.serviceTime = serviceTime;
     }
 
-    public int getStartTime() {
+    public double getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(int startTime) {
+    public void setStartTime(double startTime) {
         this.startTime = startTime;
     }
 
-    public int getEndTime() {
+    public double getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(int endTime) {
+    public void setEndTime(double endTime) {
         this.endTime = endTime;
     }
 
-    public int getTurnAroundTime() {
+    public double getTurnAroundTime() {
         return turnAroundTime;
     }
 
@@ -75,7 +86,7 @@ public class Process implements Comparable<Process> {
         this.turnAroundTime = waitTime + serviceTime;
     }
 
-    public long getNormalizedTurnAroundTime() {
+    public double getNormalizedTurnAroundTime() {
         return normalizedTurnAroundTime;
     }
 
@@ -83,16 +94,24 @@ public class Process implements Comparable<Process> {
         this.normalizedTurnAroundTime = turnAroundTime/serviceTime;
     }
 
-    public int getWaitTime() {
+    public double getWaitTime() {
         return waitTime;
     }
 
-    public void setWaitTime(int waitTime) {
+    public void setWaitTime(double waitTime) {
         this.waitTime = waitTime;
+    }
+
+    public double getRemainingTime() {
+        return remainingTime;
+    }
+
+    public void setRemainingTime(double remainingTime) {
+        this.remainingTime = remainingTime;
     }
 
     @Override
     public int compareTo(Process p) {
-        return serviceTime - p.getServiceTime();
+        return (int) (serviceTime - p.getServiceTime());
     }
 }

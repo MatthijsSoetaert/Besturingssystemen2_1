@@ -3,9 +3,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.emxsys.chart.extension.LogarithmicAxis;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
@@ -23,6 +27,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.layout.*;
 import javafx.stage.*;
+
+import javax.sound.sampled.Line;
 
 public class Main extends Application {
 
@@ -155,25 +161,28 @@ public class Main extends Application {
 
     //Functie voor het tonen van grafieken
     public static void toonGrafiek(List<Percentile> values) {
-        //defining the axes
-        final NumberAxis xAs = new NumberAxis();
-        int waarde = 10;
-        final NumberAxis yAs = new NumberAxis();
 
+        double MIN_Y = 1;
+        double MAX_Y = 100;
+        double TICKUNIT = 1d;
         XYChart.Series series = new XYChart.Series();
 
-        //creating the chart
-        final LineChart<Number, Number> lineChart = new LineChart<>(xAs, yAs);
+        // Create the dataset
+        ObservableList<XYChart.Series> dataset = FXCollections.observableArrayList();
+        LineChart.Series series1 = new LineChart.Series();
         for(int i = 0; i < 100; i++) {
-            series.getData().add(new XYChart.Data(i,values.get(i).getAverageNormilizedTAT() ));
-        }
+            series1.getData().add(new XYChart.Data(i,values.get(i).getAverageNormilizedTAT() ));
+        }        dataset.add(series1);
 
-        lineChart.getData().add(series);
+        // Create a "log" scatter chart
+        final NumberAxis xAxis = new NumberAxis();
+        LogarithmicAxis yAxis = new LogarithmicAxis("Y-Axis (Range)", MIN_Y, MAX_Y, TICKUNIT);
+        LineChart chart = new LineChart(xAxis, yAxis, dataset);
 
         //creating the new stage
         Stage grafiekVenster = new Stage();
         grafiekVenster.setTitle("grafiek");
-        grafiekVenster.setScene(new Scene(lineChart, 1000, 800));
+        grafiekVenster.setScene(new Scene(chart, 1000, 800));
         grafiekVenster.show();
     }
 }

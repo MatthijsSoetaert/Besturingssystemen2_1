@@ -1,93 +1,76 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ShortestProcessNext {
 
     //Variables
-    private List<Process> processList;
+    private Queue<Process> processQueue;
     private List<Process> waitingProcesses;
     private List<Process> finishedProcesses;
-    private Process previousProcess;
-    private int currentTime = 0;
+    private int currentTime;
+    private double previousEndTime;
+    private int size;
 
     //Constructors
     public ShortestProcessNext(List<Process> processList) {
-        this.processList = new ArrayList<>(processList);
+        this.processQueue = new LinkedList<>(processList);
         waitingProcesses = new ArrayList<>();
         finishedProcesses = new ArrayList<>();
-        previousProcess = new Process();
+        previousEndTime = 0;
+        size = processList.size();
     }
 
+    //Functies
     public List<Process> execute() {
-        System.out.println(processList.size() + " kjljmjkmljl");
-        for (int i = 0; i < processList.size(); i++) {
-            Process p = processList.get(i);
+        while (finishedProcesses.size() != size) {
 
-            if (i == 0 || waitingProcesses.isEmpty()) {
-                p.setStartTime(p.getArrivalTime());
-                p.setEndTime(p.getServiceTime() + p.getArrivalTime());
-                addProcessesToWaitingList(p);
-                currentTime = p.getEndTime();
-                p.setWaitTime(0);
-                p.setTurnAroundTime();
-                p.setNormalizedTurnAroundTime();
-                finishedProcesses.add(p);
-                processList.remove(p);
-                previousProcess = p;
-            } else if(!waitingProcesses.isEmpty()) {
-                Process nextProcess = new Process();
-                int shortestProcessTime = 9999999;
-
-                for (Process process : waitingProcesses) {
-                    if(shortestProcessTime > process.getServiceTime()){
-                        nextProcess = process;
-                        shortestProcessTime = process.getServiceTime();
+            if (!processQueue.isEmpty()) {
+                while (processQueue.peek().getArrivalTime() < previousEndTime) {
+                    Process p = processQueue.remove();
+                    waitingProcesses.add(p);
+                    if (processQueue.isEmpty()) {
+                        break;
                     }
                 }
-
-                nextProcess.setStartTime(currentTime);
-                nextProcess.setEndTime(nextProcess.getStartTime() + nextProcess.getServiceTime());
-                addProcessesToWaitingList(nextProcess);
-                currentTime = nextProcess.getEndTime();
-                nextProcess.setWaitTime(previousProcess.getEndTime() - nextProcess.getArrivalTime());
-                finishedProcesses.add(nextProcess);
-                processList.remove(nextProcess);
-                previousProcess = nextProcess;
             }
 
+            Process p = new Process();
+            if (waitingProcesses.isEmpty()) {
+                p = processQueue.remove();
+                p.setStartTime(p.getArrivalTime());
+            } else {
+                p = findProcessWithShortestServiceTime(waitingProcesses);
+                waitingProcesses.remove(p);
+                p.setStartTime(previousEndTime);
+            }
+            previousEndTime = p.executeProcess();
+            p.setTurnAroundTime();
+            p.setNormalizedTurnAroundTime();
+            finishedProcesses.add(p);
         }
-        FirstComeFirstServed fcfs = new FirstComeFirstServed(waitingProcesses);
-        List<Process> t = fcfs.execute();
-        finishedProcesses.addAll(t);
         Collections.sort(finishedProcesses);
-        System.out.println("WaitingProcessList size:" + waitingProcesses.size());
-        System.out.println("processlist size" + finishedProcesses.size());
+
         return finishedProcesses;
     }
 
-    public void addProcessesToWaitingList(Process p){
-        List<Process> tempList = new ArrayList<>();
-        for (Process nextProcess : processList) {
-            if (nextProcess.getArrivalTime() < p.getEndTime()) {
-                tempList.add(nextProcess);
-            } else {
-                break;
+    public Process findProcessWithShortestServiceTime(List<Process> processList) {
+        Process shortestProcess = new Process();
+        shortestProcess.setServiceTime(999999);
+        for (Process p : processList) {
+            if (p.getServiceTime() < shortestProcess.getServiceTime()) {
+                shortestProcess = p;
             }
         }
-        for(Process process: tempList) {
-            waitingProcesses.add(process);
-            processList.remove(process);
-        }
+
+        return shortestProcess;
     }
 
     //Getters en Setters
-    public List<Process> getProcessList() {
-        return processList;
+    public Queue<Process> getProcessQueue() {
+        return processQueue;
     }
 
-    public void setProcessList(List<Process> processList) {
-        this.processList = processList;
+    public void setProcessList(Queue<Process> processQueue) {
+        this.processQueue = processQueue;
     }
 
     public List<Process> getWaitingProcesses() {

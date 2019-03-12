@@ -2,11 +2,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import com.emxsys.chart.extension.LogarithmicAxis;
+import javafx.scene.chart.ScatterChart;
 
 public class FirstComeFirstServed {
 
     private List<Process> processList;
-    private int currentTime = 0;
+    private double currentTime = 0;
 
     public FirstComeFirstServed(List<Process> processList){
         this.processList = new ArrayList<>(processList);
@@ -32,8 +34,12 @@ public class FirstComeFirstServed {
                 p.setTurnAroundTime();
                 p.setNormalizedTurnAroundTime();
             }
+
         }
         Collections.sort(processList);
+        for(Process p : processList){
+            p.printProcess();
+        }
         return processList;
     }
 
